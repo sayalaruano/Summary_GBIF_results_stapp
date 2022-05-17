@@ -74,6 +74,9 @@ n_or = df_GBIF["occurrenceRemarks"].notnull().sum()
 n_dp = df_GBIF["dynamicProperties"].notnull().sum()
 n_im = df_GBIF["image_url"].notnull().sum()
 n_rc = df_GBIF["reproductiveCondition"].notnull().sum()
+n_lt = df_GBIF["decimalLatitude"].notnull().sum()
+n_lg = df_GBIF["decimalLongitude"].notnull().sum()
+n_mth = df_GBIF["month"].notnull().sum()
 
 col1, col2, col3 = st.columns(3)
 col1.metric("Total", prettify(n_total))
@@ -84,6 +87,11 @@ col4, col5, col6 = st.columns(3)
 col4.metric("With dynamicProperties data", prettify(n_dp))
 col5.metric("With links to images", prettify(n_im))
 col6.metric("With reproductiveCondition data", prettify(n_rc))
+
+col7, col8, col9 = st.columns(3)
+col7.metric("With Latitude data", prettify(n_lt))
+col8.metric("With Longitude data", prettify(n_lg))
+col9.metric("With month's date data", prettify(n_mth))
 
 # Number of records by species
 # Create a df with the data
@@ -130,6 +138,30 @@ plot2 = go.Figure(data=[go.Pie(labels=df_counts_c["Country_name"],
 
 st.plotly_chart(plot2)
 
+# Binned latitude
+# Create a df with the data
+lat = df_GBIF[df_GBIF['decimalLatitude'].notnull()]["decimalLatitude"]
+
+# Create plot of records by species
+st.subheader("Histogram of binned latitude")
+
+plot3 = px.histogram(lat, x="decimalLatitude", labels={'decimalLatitude':'Latitude'}, 
+                    nbins=15, opacity=0.8)
+
+st.plotly_chart(plot3)
+
+# Map
+# Create a df with the data
+#lat = df_GBIF[df_GBIF['decimalLatitude'].notnull()]["decimalLatitude"]
+
+# Create plot of records by species
+st.subheader("Map of distribution records")
+
+plot4 = px.scatter_geo(df_GBIF, lat="decimalLatitude", lon="decimalLongitude", 
+                    hover_name="Country_name")
+
+st.plotly_chart(plot4)
+
 # Records information by species
 st.subheader("Records information by species")
 # Create sidebar
@@ -145,13 +177,21 @@ n_or_sp = df_species["occurrenceRemarks"].notnull().sum()
 n_dp_sp = df_species["dynamicProperties"].notnull().sum()
 n_im_sp = df_species["image_url"].notnull().sum()
 n_rc_sp = df_species["reproductiveCondition"].notnull().sum()
-
-col7, col8, col9 = st.columns(3)
-col7.metric("Total", prettify(n_total_sp))
-col8.metric("With fieldNotes data", prettify(n_fn_sp))
-col9.metric("With occurrenceRemarks data", prettify(n_or_sp))
+n_lt_sp = df_species["decimalLatitude"].notnull().sum()
+n_lg_sp = df_species["decimalLongitude"].notnull().sum()
+n_mth_sp = df_species["month"].notnull().sum()
 
 col10, col11, col12 = st.columns(3)
-col10.metric("With dynamicProperties data", prettify(n_dp_sp))
-col11.metric("With links to images", prettify(n_im_sp))
-col12.metric("With reproductiveCondition data", prettify(n_rc_sp))
+col10.metric("Total", prettify(n_total_sp))
+col11.metric("With fieldNotes data", prettify(n_fn_sp))
+col12.metric("With occurrenceRemarks data", prettify(n_or_sp))
+
+col13, col14, col15 = st.columns(3)
+col13.metric("With dynamicProperties data", prettify(n_dp_sp))
+col14.metric("With links to images", prettify(n_im_sp))
+col15.metric("With reproductiveCondition data", prettify(n_rc_sp))
+
+col16, col17, col18 = st.columns(3)
+col16.metric("With Latitude data", prettify(n_lt_sp))
+col17.metric("With Longitude data", prettify(n_lg_sp))
+col18.metric("With month's date data", prettify(n_mth_sp))
