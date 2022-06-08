@@ -12,11 +12,11 @@ from st_aggrid.shared import JsCode
 from st_aggrid import GridUpdateMode, DataReturnMode
 
 # Load data
-df_GBIF = pd.read_csv("50_species_GBIFrecords_fieldnotes.csv")
+df_GBIF = pd.read_csv("Data/Allspecies_GBIFrecords_fieldnotes_complete.csv")
 
 # Create streamlit app
 
-st.header('Summary about the results of 50 species search into GBIF')
+st.header('Summary about the GBIF results of all the 438 species')
 
 st.subheader('by [Sebastián Ayala-Ruano](https://sayalaruano.github.io/)')
 
@@ -74,9 +74,6 @@ n_or = df_GBIF["occurrenceRemarks"].notnull().sum()
 n_dp = df_GBIF["dynamicProperties"].notnull().sum()
 n_im = df_GBIF["image_url"].notnull().sum()
 n_rc = df_GBIF["reproductiveCondition"].notnull().sum()
-n_lt = df_GBIF["decimalLatitude"].notnull().sum()
-n_lg = df_GBIF["decimalLongitude"].notnull().sum()
-n_mth = df_GBIF["month"].notnull().sum()
 
 col1, col2, col3 = st.columns(3)
 col1.metric("Total", prettify(n_total))
@@ -87,11 +84,6 @@ col4, col5, col6 = st.columns(3)
 col4.metric("With dynamicProperties data", prettify(n_dp))
 col5.metric("With links to images", prettify(n_im))
 col6.metric("With reproductiveCondition data", prettify(n_rc))
-
-col7, col8, col9 = st.columns(3)
-col7.metric("With Latitude data", prettify(n_lt))
-col8.metric("With Longitude data", prettify(n_lg))
-col9.metric("With month's date data", prettify(n_mth))
 
 # Number of records by species
 # Create a df with the data
@@ -106,18 +98,18 @@ for i in names["acceptedScientificName_corr"]:
   count_temp = len(df_GBIF[df_GBIF["acceptedScientificName_corr"] == i])
   df_counts.loc[len(df_counts)] = [i, count_temp]
 
-# Create plot of records by species
-st.subheader("Number of records by species")
+# Create dot plot of records by species
+st.subheader("Number of records by species dotplot")
 
-plot = px.bar(df_counts, y='count', x='acceptedScientificName_corr',
-            text_auto='.2s', labels={
-                    "count": "Number of records",
+dotplot = px.scatter(df_counts, x="acceptedScientificName_corr", y="count", 
+                 labels={"count": "Number of records",
                     "acceptedScientificName_corr": "Scientific names"
-                })
-plot.update_traces(textfont_size=12, textangle=0, textposition="outside", showlegend=False)
-st.plotly_chart(plot)
+                    })
+dotplot.update_xaxes(showticklabels=False) 
+#plot.update_traces(textfont_size=12, textangle=0, textposition="outside", showlegend=False)
+st.plotly_chart(dotplot)
 
-# Number of recors by country
+# Number of records by country
 # Create a df with the data
 countries = pd.DataFrame(df_GBIF["Country_name"].unique(), 
                     columns = ["Country_name"])
@@ -152,8 +144,6 @@ st.plotly_chart(plot3)
 
 # Map
 # Create a df with the data
-#lat = df_GBIF[df_GBIF['decimalLatitude'].notnull()]["decimalLatitude"]
-
 # Create plot of records by species
 st.subheader("Map of distribution records")
 
@@ -165,10 +155,10 @@ st.plotly_chart(plot4)
 # Records information by species
 st.subheader("Records information by species")
 # Create sidebar
-country = st.selectbox('Species:', df_GBIF["acceptedScientificName_corr"].unique())
+sp = st.selectbox('Species:', df_GBIF["acceptedScientificName_corr"].unique())
 
 # Filter data of the selected species
-df_species = df_GBIF[df_GBIF["acceptedScientificName_corr"] == country]
+df_species = df_GBIF[df_GBIF["acceptedScientificName_corr"] == sp]
 
 # Calculate parameters by species
 n_total_sp = len(df_species)
@@ -177,9 +167,6 @@ n_or_sp = df_species["occurrenceRemarks"].notnull().sum()
 n_dp_sp = df_species["dynamicProperties"].notnull().sum()
 n_im_sp = df_species["image_url"].notnull().sum()
 n_rc_sp = df_species["reproductiveCondition"].notnull().sum()
-n_lt_sp = df_species["decimalLatitude"].notnull().sum()
-n_lg_sp = df_species["decimalLongitude"].notnull().sum()
-n_mth_sp = df_species["month"].notnull().sum()
 
 col10, col11, col12 = st.columns(3)
 col10.metric("Total", prettify(n_total_sp))
@@ -190,8 +177,3 @@ col13, col14, col15 = st.columns(3)
 col13.metric("With dynamicProperties data", prettify(n_dp_sp))
 col14.metric("With links to images", prettify(n_im_sp))
 col15.metric("With reproductiveCondition data", prettify(n_rc_sp))
-
-col16, col17, col18 = st.columns(3)
-col16.metric("With Latitude data", prettify(n_lt_sp))
-col17.metric("With Longitude data", prettify(n_lg_sp))
-col18.metric("With month's date data", prettify(n_mth_sp))
