@@ -15,6 +15,7 @@ from st_aggrid import GridUpdateMode, DataReturnMode
 df_GBIF = pd.read_csv("Data/Allspecies_GBIFrecords_fieldnotes_complete.csv")
 
 # Create streamlit app
+
 st.header('Summary about the GBIF results of all the 438 species')
 
 st.subheader('by [Sebastián Ayala-Ruano](https://sayalaruano.github.io/)')
@@ -98,7 +99,7 @@ for i in names["acceptedScientificName_corr"]:
   df_counts.loc[len(df_counts)] = [i, count_temp]
 
 # Create dot plot of records by species
-st.subheader("Number of records by species")
+st.subheader("Number of records by species dotplot")
 
 dotplot = px.scatter(df_counts, x="acceptedScientificName_corr", y="count", 
                  labels={"count": "Number of records",
@@ -150,3 +151,29 @@ plot4 = px.scatter_geo(df_GBIF, lat="decimalLatitude", lon="decimalLongitude",
                     hover_name="Country_name")
 
 st.plotly_chart(plot4)
+
+# Records information by species
+st.subheader("Records information by species")
+# Create sidebar
+sp = st.selectbox('Species:', df_GBIF["acceptedScientificName_corr"].unique())
+
+# Filter data of the selected species
+df_species = df_GBIF[df_GBIF["acceptedScientificName_corr"] == sp]
+
+# Calculate parameters by species
+n_total_sp = len(df_species)
+n_fn_sp = df_species["fieldNotes"].notnull().sum()
+n_or_sp = df_species["occurrenceRemarks"].notnull().sum()
+n_dp_sp = df_species["dynamicProperties"].notnull().sum()
+n_im_sp = df_species["image_url"].notnull().sum()
+n_rc_sp = df_species["reproductiveCondition"].notnull().sum()
+
+col10, col11, col12 = st.columns(3)
+col10.metric("Total", prettify(n_total_sp))
+col11.metric("With fieldNotes data", prettify(n_fn_sp))
+col12.metric("With occurrenceRemarks data", prettify(n_or_sp))
+
+col13, col14, col15 = st.columns(3)
+col13.metric("With dynamicProperties data", prettify(n_dp_sp))
+col14.metric("With links to images", prettify(n_im_sp))
+col15.metric("With reproductiveCondition data", prettify(n_rc_sp))
