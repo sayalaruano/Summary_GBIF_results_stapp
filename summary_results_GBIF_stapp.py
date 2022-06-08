@@ -12,7 +12,12 @@ from st_aggrid.shared import JsCode
 from st_aggrid import GridUpdateMode, DataReturnMode
 
 # Load data
-df_GBIF = pd.read_csv("Data/Allspecies_GBIFrecords_fieldnotes_complete.csv")
+@st.experimental_singleton
+def load_data(file_path):
+    df = pd.read_csv(file_path)
+    return df
+
+df_GBIF = load_data("Data/Allspecies_GBIFrecords_fieldnotes_complete.csv")
 
 # Create streamlit app
 st.header('Summary about the GBIF results of all the 438 species')
@@ -48,7 +53,7 @@ cs, c1 = st.columns([2, 2])
 
 with cs:
 
-    @st.cache
+    @st.experimental_singleton
     def convert_df(df_GBIF):
         # IMPORTANT: Cache the conversion to prevent computation on every rerun
         return df_GBIF.to_csv().encode("utf-8")
@@ -150,3 +155,7 @@ plot4 = px.scatter_geo(df_GBIF, lat="decimalLatitude", lon="decimalLongitude",
                     hover_name="Country_name")
 
 st.plotly_chart(plot4)
+
+# Clear all cached entries for functions
+load_data.clear()
+convert_df.clear()
