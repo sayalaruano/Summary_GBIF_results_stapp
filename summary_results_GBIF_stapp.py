@@ -13,11 +13,12 @@ from st_aggrid import GridUpdateMode, DataReturnMode
 
 # Load data
 @st.experimental_singleton
+#@st.experimental_memo
 def load_data(file_path):
-    df = pd.read_csv(file_path)
+    df = pd.read_parquet(file_path)
     return df
 
-df_GBIF = load_data("Data/Allspecies_GBIFrecords_fieldnotes_complete.csv")
+df_GBIF = load_data("Data/Allspecies_GBIFrecords_fieldnotes_filtered.parquet")
 
 # Create streamlit app
 st.header('Summary about the GBIF results of all the 438 species')
@@ -25,49 +26,6 @@ st.header('Summary about the GBIF results of all the 438 species')
 st.subheader('by [Sebastián Ayala-Ruano](https://sayalaruano.github.io/)')
 
 st.subheader('Original dataset')
-
-# Create an interactive df with aggrid
-gb = GridOptionsBuilder.from_dataframe(df_GBIF)
-# enables pivoting on all columns, however i'd need to change ag grid to allow export of pivoted/grouped data, however it select/filters groups
-gb.configure_default_column(
-    enablePivot=True, enableValue=True, enableRowGroup=True
-)
-gb.configure_selection(selection_mode="multiple", use_checkbox=True)
-gb.configure_side_bar()  # side_bar is clearly a typo :) should by sidebar
-gridOptions = gb.build()
-
-response = AgGrid(
-    df_GBIF,
-    gridOptions=gridOptions,
-    enable_enterprise_modules=True,
-    update_mode=GridUpdateMode.MODEL_CHANGED,
-    data_return_mode=DataReturnMode.FILTERED_AND_SORTED,
-    height=500,
-    width= 900,
-    fit_columns_on_grid_load=False,
-    configure_side_bar=True,
-)
-
-# Download button
-cs, c1 = st.columns([2, 2])
-
-with cs:
-
-    @st.experimental_singleton
-    def convert_df(df_GBIF):
-        # IMPORTANT: Cache the conversion to prevent computation on every rerun
-        return df_GBIF.to_csv().encode("utf-8")
-
-    csv = convert_df(df_GBIF)  
-
-    st.caption("")
-
-    st.download_button(
-        label="Download original data as CSV",
-        data=csv,
-        file_name="results_GBIF.csv",
-        mime="text/csv",
-    )
 
 # General counts
 st.subheader("General information about the records of the dataset")
@@ -91,23 +49,23 @@ col6.metric("With reproductiveCondition data", prettify(n_rc))
 
 # Number of records by species
 # Create a df with the data
-names = pd.DataFrame(df_GBIF["acceptedScientificName_corr"].unique(), 
-                    columns = ["acceptedScientificName_corr"])
+names = pd.DataFrame(df_GBIF["acceptedScientificName"].unique(), 
+                    columns = ["acceptedScientificName"])
 
-names = names.sort_values(by=["acceptedScientificName_corr"], ignore_index=True)
+names = names.sort_values(by=["acceptedScientificName"], ignore_index=True)
 
-df_counts = pd.DataFrame(columns=["acceptedScientificName_corr", "count"])
+df_counts = pd.DataFrame(columns=["acceptedScientificName", "count"])
 
-for i in names["acceptedScientificName_corr"]:
-  count_temp = len(df_GBIF[df_GBIF["acceptedScientificName_corr"] == i])
+for i in names["acceptedScientificName"]:
+  count_temp = len(df_GBIF[df_GBIF["acceptedScientificName"] == i])
   df_counts.loc[len(df_counts)] = [i, count_temp]
 
 # Create dot plot of records by species
 st.subheader("Number of records by species")
 
-dotplot = px.scatter(df_counts, x="acceptedScientificName_corr", y="count", 
+dotplot = px.scatter(df_counts, x="acceptedScientificName", y="count", 
                  labels={"count": "Number of records",
-                    "acceptedScientificName_corr": "Scientific names"
+                    "acceptedScientificName": "Scientific names"
                     })
 dotplot.update_xaxes(showticklabels=False) 
 #plot.update_traces(textfont_size=12, textangle=0, textposition="outside", showlegend=False)
@@ -158,4 +116,3 @@ st.plotly_chart(plot4)
 
 # Clear all cached entries for functions
 load_data.clear()
-convert_df.clear()

@@ -12,13 +12,35 @@ from st_aggrid.shared import JsCode
 from st_aggrid import GridUpdateMode, DataReturnMode
 
 # Load data
-df_GBIF = pd.read_csv("50_species_GBIFrecords_fieldnotes.csv")
+@st.experimental_singleton
+#@st.experimental_memo
+def load_data(file_path):
+    df = pd.read_csv(file_path)
+    return df
+
+df_GBIF = load_data("Data/50_species_GBIFrecords_fieldnotes.csv")
 
 # Create streamlit app
 
 st.header('Summary about the results of 50 species search into GBIF')
 
 st.subheader('by [Sebastián Ayala-Ruano](https://sayalaruano.github.io/)')
+
+st.sidebar.header('About')
+
+st.sidebar.write('This is the exploratory data analysis of a project about phenology of species from tropical montane forests in the northwestern Pichincha in Ecuador.')
+
+st.sidebar.header('Data')
+
+st.sidebar.write('The dataset was retrieved from [GBIF](https://www.gbif.org/), an initiative to collect biological information and share it openly.')
+
+st.sidebar.header('Code availability')
+
+st.sidebar.write('The code for this project is available under the [MIT License](https://mit-license.org/) in this [GitHub repo](https://github.com/sayalaruano/Summary_GBIF_results_stapp). If you use or modify the source code of this project, please provide the proper attributions for this work.')
+
+st.sidebar.header('Contact')
+
+st.sidebar.write('If you have any comments or suggestions about this work, please DM by [twitter](https://twitter.com/sayalaruano) or [create an issue](https://github.com/sayalaruano/Summary_GBIF_results_stapp/issues/new) in the GitHub repository of this project.')
 
 st.subheader('Original dataset')
 
@@ -117,7 +139,7 @@ plot = px.bar(df_counts, y='count', x='acceptedScientificName_corr',
 plot.update_traces(textfont_size=12, textangle=0, textposition="outside", showlegend=False)
 st.plotly_chart(plot)
 
-# Number of recors by country
+# Number of records by country
 # Create a df with the data
 countries = pd.DataFrame(df_GBIF["Country_name"].unique(), 
                     columns = ["Country_name"])
@@ -193,3 +215,6 @@ col16, col17, col18 = st.columns(3)
 col16.metric("With Latitude data", prettify(n_lt_sp))
 col17.metric("With Longitude data", prettify(n_lg_sp))
 col18.metric("With month's date data", prettify(n_mth_sp))
+
+# Clear all cached entries for functions
+load_data.clear()
